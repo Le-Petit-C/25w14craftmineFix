@@ -17,6 +17,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
+/**
+ * 查看: {@link net.minecraft.class_11113#field_59163}
+ * Mojang对于是否满足获得该物品的判断是
+ 	(serverWorld, serverPlayerEntity, itemStack) -> serverWorld.getBiome(serverPlayerEntity.getBlockPos()).isIn(BiomeTags.IS_BADLANDS)
+ 	&& itemStack.isOf(Items.LAVA_BUCKET)
+ * 但是奇怪的是这个.isIn(BiomeTags.IS_BADLANDS)始终无法返回true
+ * 所以我把它改成了.getIdAsString().contains("badlands")
+ */
 
 @Mixin(class_11109.class_11110.class)
 public abstract class DryLandFixMixin {
@@ -30,12 +38,8 @@ public abstract class DryLandFixMixin {
 			field_59143.clear();
 			method_69943(
 					class_11057.method_69662(
-							(serverWorld, serverPlayerEntity, itemStack) -> {
-								RegistryEntry<Biome> biome = serverWorld.getBiome(serverPlayerEntity.getBlockPos());
-								return
-								biome.getIdAsString().contains("badlands")
-								&& itemStack.isOf(Items.LAVA_BUCKET);
-							}
+							(serverWorld, serverPlayerEntity, itemStack) -> serverWorld.getBiome(serverPlayerEntity.getBlockPos()).getIdAsString().contains("badlands")
+                            && itemStack.isOf(Items.LAVA_BUCKET)
 					)
 			);
 		}
