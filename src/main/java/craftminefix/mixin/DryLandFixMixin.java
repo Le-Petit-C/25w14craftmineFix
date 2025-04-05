@@ -1,7 +1,7 @@
 package craftminefix.mixin;
 
-import net.minecraft.class_11057;
-import net.minecraft.class_11109;
+import net.minecraft.aprilfools.UnlockCondition;
+import net.minecraft.aprilfools.WorldEffect;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 /**
- * 查看: {@link net.minecraft.class_11113#field_59163}
+ * 查看: {@link net.minecraft.aprilfools.WorldEffects#DRY_LAND}
  * Mojang对于是否满足获得该物品的判断是
  	(serverWorld, serverPlayerEntity, itemStack) -> serverWorld.getBiome(serverPlayerEntity.getBlockPos()).isIn(BiomeTags.IS_BADLANDS)
  	&& itemStack.isOf(Items.LAVA_BUCKET)
@@ -24,24 +24,24 @@ import java.util.List;
  * 所以我把它改成了.getIdAsString().contains("badlands")
  */
 
-@Mixin(class_11109.class_11110.class)
+@Mixin(WorldEffect.Builder.class)
 public abstract class DryLandFixMixin {
-	@Shadow @Final @Mutable private String field_59139;
-	@Shadow @Final private List<class_11057> field_59143;
-	@Shadow protected abstract class_11109 method_69964();
-	@Shadow public abstract class_11109.class_11110 method_69943(class_11057... args);
-	@Inject(method = "method_69963", at = @At("HEAD"), cancellable = true)
-    private void method_69963_injection(CallbackInfoReturnable<class_11109> cir){
-		if(field_59139.equals("dry_land")){
-			field_59143.clear();
-			method_69943(
-					class_11057.method_69662(
+	@Shadow @Final @Mutable private String id;
+	@Shadow @Final private List<UnlockCondition> unlockedBy;
+	@Shadow protected abstract WorldEffect build();
+	@Shadow public abstract WorldEffect.Builder unlockedByCondition(UnlockCondition... args);
+	@Inject(method = "buildAndRegister", at = @At("HEAD"), cancellable = true)
+    private void method_69963_injection(CallbackInfoReturnable<WorldEffect> cir){
+		if(id.equals("dry_land")){
+			unlockedBy.clear();
+			unlockedByCondition(
+					UnlockCondition.method_69662(
 							(serverWorld, serverPlayerEntity, itemStack) -> serverWorld.getBiome(serverPlayerEntity.getBlockPos()).getIdAsString().contains("badlands")
                             && itemStack.isOf(Items.LAVA_BUCKET)
 					)
 			);
 		}
-		cir.setReturnValue(Registry.register(Registries.field_59575, Identifier.ofVanilla(this.field_59139), this.method_69964()));
+		cir.setReturnValue(Registry.register(Registries.WORLD_EFFECT, Identifier.ofVanilla(this.id), build()));
 		cir.cancel();
 	}
 }
